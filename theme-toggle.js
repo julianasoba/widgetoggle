@@ -29,9 +29,9 @@
   const resolveTheme = (value = mode) => value === 'system' ? (media.matches ? 'dark' : 'light') : value;
 
   const css = `
-    :host { --tt-size:40px; --tt-accent:#242b70; --tt-active-fg:#fff; --tt-border:color-mix(in srgb,currentColor 28%,transparent); --tt-hover:color-mix(in srgb,currentColor 10%,transparent); --tt-speed:.2s; display:inline-flex; vertical-align:middle; color:inherit; font:inherit; line-height:1; }
+   :host { --tt-size:40px; --tt-accent:#111322; --tt-active-fg:#fff; --tt-border:color-mix(in srgb,currentColor 28%,transparent); --tt-hover:color-mix(in srgb,currentColor 10%,transparent); --tt-speed:.2s; display:inline-flex; vertical-align:middle; color:inherit; font:inherit; line-height:1; }
     :host([data-size="sm"]) { --tt-size:32px; } :host([data-size="lg"]) { --tt-size:48px; }
-    :host-context(html[data-theme="dark"]) { --tt-accent:#9da8ff; --tt-active-fg:#111322; }
+    :host-context(html[data-theme="dark"]) { --tt-accent:#fff; --tt-active-fg:#111322; }
     @media(pointer:coarse){:host(:not([data-size])){--tt-size:44px;}}
     *{box-sizing:border-box} button{border:0;margin:0;color:inherit;font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
     button:focus-visible{outline:2px solid var(--tt-accent);outline-offset:3px}
