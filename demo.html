@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Theme Toggle Widget Demo</title>
+<style>
+:root{color-scheme:light;--page-bg:#f6f7fb;--panel:#fff;--text:#1b1c24;--muted:#5f6475}
+:root[data-theme="dark"]{color-scheme:dark;--page-bg:#12131a;--panel:#1d1f2b;--text:#f3f4fa;--muted:#b4b8c8}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;padding:40px 20px;background:var(--page-bg);color:var(--text);font:16px/1.6 system-ui,sans-serif;transition:background .2s,color .2s}main{max-width:760px;margin:0 auto}.top{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}.panel{margin-top:28px;padding:28px;border-radius:20px;background:var(--panel);box-shadow:0 12px 40px #0000000d}p{color:var(--muted)}code{overflow-wrap:anywhere}
+</style>
+<script src="./theme-toggle.js" defer></script>
+</head>
+<body><main><div class="top"><div><h1>Theme Toggle</h1><p>Standalone embeddable widget demo.</p></div><div data-theme-toggle data-variant="segmented" data-label></div></div><section class="panel"><h2>Your site, your theme</h2><p>The widget sets <code>data-theme="light"</code> or <code>data-theme="dark"</code> on the root HTML element. A website must provide matching theme styles for its page colors to change.</p><p>Switch variant:</p><div data-theme-toggle data-variant="switch"></div></section></main></body>
+</html>
