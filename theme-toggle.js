@@ -1,4 +1,4 @@
-/* Theme Toggle Widget v0.1.0 — framework-free embeddable widget */
+/* Theme Toggle Widget v0.1.1 — framework-free embeddable widget */
 (() => {
   'use strict';
   if (window.ThemeToggleWidget) return;
@@ -8,7 +8,7 @@
   const supplied = window.ThemeToggleWidgetConfig || {};
   const config = {
     storageKey: 'theme-mode', defaultMode: 'system', groupLabel: 'Site theme',
-    labels: { light: 'Light', dark: 'Dark', system: 'System' }, ...supplied,
+    ...supplied,
     labels: { light: 'Light', dark: 'Dark', system: 'System', ...(supplied.labels || {}) }
   };
   const root = document.documentElement;
@@ -29,9 +29,9 @@
   const resolveTheme = (value = mode) => value === 'system' ? (media.matches ? 'dark' : 'light') : value;
 
   const css = `
-   :host { --tt-size:40px; --tt-accent:#111322; --tt-active-fg:#fff; --tt-border:color-mix(in srgb,currentColor 28%,transparent); --tt-hover:color-mix(in srgb,currentColor 10%,transparent); --tt-speed:.2s; display:inline-flex; vertical-align:middle; color:inherit; font:inherit; line-height:1; }
+    :host { --tt-size:40px; --tt-accent:#111322; --tt-active-fg:#fff; --tt-border:color-mix(in srgb,currentColor 28%,transparent); --tt-hover:color-mix(in srgb,currentColor 10%,transparent); --tt-speed:.2s; display:inline-flex; vertical-align:middle; color:inherit; font:inherit; line-height:1; }
     :host([data-size="sm"]) { --tt-size:32px; } :host([data-size="lg"]) { --tt-size:48px; }
-    :host-context(html[data-theme="dark"]) { --tt-accent:#fff; --tt-active-fg:#111322; }
+    :host([data-theme="dark"]) { --tt-accent:#fff; --tt-active-fg:#111322; }
     @media(pointer:coarse){:host(:not([data-size])){--tt-size:44px;}}
     *{box-sizing:border-box} button{border:0;margin:0;color:inherit;font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
     button:focus-visible{outline:2px solid var(--tt-accent);outline-offset:3px}
@@ -50,7 +50,10 @@
     root.setAttribute('data-theme', theme);
     root.setAttribute('data-theme-mode', mode);
     root.style.colorScheme = theme;
-    for (const [element, update] of widgets) { if (element.isConnected) update(); else widgets.delete(element); }
+    for (const [element, update] of widgets) {
+      if (element.isConnected) { element.setAttribute('data-theme', theme); update(); }
+      else widgets.delete(element);
+    }
     if (emit) document.dispatchEvent(new CustomEvent('themechange', { detail: { mode, theme } }));
   }
   function setMode(next) { if (!validMode(next)) return; mode = next; storage.set(next); applyTheme(); }
@@ -67,6 +70,7 @@
     if (variant === 'cycle') wrapper.classList.add('cycle');
     if (element.dataset.size) element.setAttribute('data-size', element.dataset.size);
     if (element.hasAttribute('data-label')) element.setAttribute('data-label','');
+    element.setAttribute('data-theme', resolveTheme());
     let update;
     if (variant === 'segmented') {
       wrapper.innerHTML = modes.map(name => `<button type="button" class="btn" data-mode="${name}" aria-pressed="false" title="${escapeHTML(config.labels[name])}" aria-label="${escapeHTML(config.labels[name])}">${icons[name]}<span class="label">${escapeHTML(config.labels[name])}</span></button>`).join('');
@@ -75,13 +79,32 @@
     } else if (variant === 'cycle') {
       wrapper.innerHTML = '<button type="button" class="btn"><span class="icon"></span><span class="label"></span></button>';
       const button = wrapper.querySelector('button'), icon = wrapper.querySelector('.icon'), label = wrapper.querySelector('.label');
-      button.addEventListener('click', () => { const index = modes.indexOf(mode); setMode(modes[(index + 1 + modes.length) % modes.length]); });
-      update = () => { const shown = modes.includes(mode) ? mode : resolveTheme(); icon.innerHTML = icons[shown]; label.textContent = config.labels[shown]; button.setAttribute('aria-label', `${config.groupLabel}: ${config.labels[shown]}. Activate to change.`); button.title = `${config.groupLabel}: ${config.labels[shown]}`; };
+      button.addEventListener('click', () => {
+        const index = modes.indexOf(mode);
+        const next = index === -1
+          ? (modes.find(m => m !== resolveTheme()) ?? modes[0])
+          : modes[(index + 1) % modes.length];
+        setMode(next);
+      });
+      update = () => {
+        const theme = resolveTheme(); // 'light' | 'dark' — nunca mostra o ícone "system"
+        const text = mode === 'system' ? `${config.labels.system} (${config.labels[theme]})` : config.labels[theme];
+        icon.innerHTML = icons[theme];
+        label.textContent = config.labels[theme];
+        button.dataset.auto = String(mode === 'system'); // útil para estilizar o modo automático
+        button.setAttribute('aria-label', `${config.groupLabel}: ${text}. Activate to change.`);
+        button.title = `${config.groupLabel}: ${text}`;
+      };
     } else {
-      wrapper.innerHTML = `<button type="button" class="switch" role="switch" aria-checked="false" aria-label="Toggle dark mode"><span class="thumb">${icons.light}</span></button>`;
+      wrapper.innerHTML = `<button type="button" class="switch" role="switch" aria-checked="false" aria-label="${escapeHTML(config.labels.dark)}"><span class="thumb">${icons.light}</span></button>`;
       const button = wrapper.querySelector('button');
       button.addEventListener('click', () => setMode(resolveTheme() === 'dark' ? 'light' : 'dark'));
-      update = () => { const dark = resolveTheme() === 'dark'; button.setAttribute('aria-checked', String(dark)); button.setAttribute('aria-label', dark ? 'Switch to light theme' : 'Switch to dark theme'); wrapper.querySelector('.thumb').innerHTML = icons[dark ? 'dark' : 'light']; };
+      update = () => {
+        const dark = resolveTheme() === 'dark';
+        button.setAttribute('aria-checked', String(dark));
+        button.setAttribute('aria-label', dark ? config.labels.light : config.labels.dark);
+        wrapper.querySelector('.thumb').innerHTML = icons[dark ? 'dark' : 'light'];
+      };
     }
     shadow.appendChild(wrapper); widgets.set(element, update); update();
   }
